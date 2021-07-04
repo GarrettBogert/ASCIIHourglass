@@ -14,10 +14,11 @@ namespace ConsoleApp13
 
         static void Main(string[] args)
         {
+            
             char[,] HourGlass = GetInitialHourGlassState();
             RenderHourglass(HourGlass);
             Thread.Sleep(FrameDuration);
-
+            Console.Read();
             while (!IsComplete)
             {
                 HourGlass = SimulateSandMovementFromBottomUp(HourGlass);
@@ -44,14 +45,24 @@ namespace ConsoleApp13
 
         static char[,] SimulateSandMovementFromBottomUp(char[,] hourGlass)
         {
+            var random = new Random();
             int movementThisFrame = 0;
             //Start from bottom layer and loop upwards until top layer
             for (int y = YHeight - 1; y > 0; y--)
             {
-                //From left to right, as each char of sand if it can fall (down, down-left, or downright)
+                List<int> SandInThisRow = new List<int>();
+               
                 for (int x = 0; x < XWidth - 1; x++)
                 {
-                    if(Hourglass.CellTypes[hourGlass[x,y]] == CellType.Sand)
+                    SandInThisRow.Add(x);                  
+                }
+
+                while(SandInThisRow.Count > 0)
+                {
+                    var x = random.Next(0, SandInThisRow.Count());
+                    SandInThisRow.RemoveAt(x);
+
+                    if (Hourglass.CellTypes[hourGlass[x, y]] == CellType.Sand)
                     {
                         var nextMove = GetNextMoveForSand(x, y, hourGlass);
                         switch (nextMove)
@@ -63,7 +74,7 @@ namespace ConsoleApp13
                                 break;
                             case MovementThisFrame.FallDown_Left:
                                 hourGlass[x, y] = ' ';
-                                hourGlass[x -1, y + 1] = '*';
+                                hourGlass[x - 1, y + 1] = '*';
                                 movementThisFrame++;
                                 break;
                             case MovementThisFrame.FallDown_Right:
@@ -76,12 +87,12 @@ namespace ConsoleApp13
                             default:
                                 break;
                         }
-                    }
+                    }                       
                 }
             }
 
-            if (movementThisFrame == 0)
-                IsComplete = true;
+            //if (movementThisFrame == 0)
+            //    IsComplete = true;
             return hourGlass;
         }
 
