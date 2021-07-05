@@ -7,23 +7,23 @@ namespace ConsoleApp13
 {
     class Program
     {
-        private static int YHeight = 23;
+        private static int YHeight = 24;
         private static int XWidth = 21;
-        private static int FrameDuration = 1;
+        private static float FrameDuration = .02f;
         private static bool IsComplete = false;
 
         static void Main(string[] args)
         {
-            
+            Console.SetWindowSize(XWidth, YHeight);
             char[,] HourGlass = GetInitialHourGlassState();
             RenderHourglass(HourGlass);
-            Thread.Sleep(FrameDuration);
+            Thread.Sleep(TimeSpan.FromSeconds(FrameDuration));
             Console.Read();
             while (!IsComplete)
             {
                 HourGlass = SimulateSandMovementFromBottomUp(HourGlass);
                 RenderHourglass(HourGlass);
-                Thread.Sleep(FrameDuration);
+                Thread.Sleep(TimeSpan.FromSeconds(FrameDuration));
             }              
         }
 
@@ -32,10 +32,10 @@ namespace ConsoleApp13
             var init = Hourglass.InitialCells;
             var hourGlass = new char[XWidth, YHeight];
 
-            for (int y = 0; y < init.Length - 1; y++)
+            for (int y = 0; y < init.Length; y++)
             {
                 var row = init[y].ToCharArray();
-                for (int x = 0; x < row.Length - 1; x++)
+                for (int x = 0; x < row.Length; x++)
                 {
                     hourGlass[x, y] = row[x];
                 }
@@ -70,6 +70,7 @@ namespace ConsoleApp13
                             case MovementThisFrame.FallDown:
                                 hourGlass[x, y] = ' ';
                                 hourGlass[x, y + 1] = '*';
+                                
                                 movementThisFrame++;
                                 break;
                             case MovementThisFrame.FallDown_Left:
@@ -104,6 +105,8 @@ namespace ConsoleApp13
                 return MovementThisFrame.FallDown;
             }
 
+            //Dont have to do out-of-bounds checks here because the sand is always kept 1 or more units away 
+            //from the end of the array.
             bool canFallDownLeft = Hourglass.CellTypes[hourGlass[x - 1, y + 1]] == CellType.Empty;
             bool canFallDownRight = Hourglass.CellTypes[hourGlass[x + 1, y + 1]] == CellType.Empty;
 
@@ -131,9 +134,10 @@ namespace ConsoleApp13
             for (int y = 0; y < hourGlass.GetLength(1); y++)
             {
                 for (int x = 0; x < hourGlass.GetLength(0); x++)
-                {
-                    Console.Write(hourGlass[x, y]);
+                {                
+                    Console.Write(hourGlass[x, y]);                   
                 }
+                if(y < hourGlass.GetLength(1) - 1)
                 Console.WriteLine();
             }          
         }
@@ -172,21 +176,24 @@ namespace ConsoleApp13
 
 
         public static Dictionary<char, CellType> CellTypes = new Dictionary<char, CellType> {
-        { '/', CellType.Wall },
-        { '|', CellType.Wall },
-        { '\\', CellType.Wall },
-        { '-', CellType.Wall },
-         { ',', CellType.Wall },
-        { '\'', CellType.Wall },
-        { '_', CellType.Wall },
+        { '/', CellType.Glass },
+        { '|', CellType.Wood },
+        { '\\', CellType.Glass },
+        { '-', CellType.Glass },
+         { ',', CellType.Glass },
+        { '\'', CellType.Glass },
+        { '_', CellType.Glass },
         { '*', CellType.Sand },
         { ' ', CellType.Empty },
-        { '.', CellType.Outside }
+        { '.', CellType.Glass },
+        { '=', CellType.Wood },
+        { '+', CellType.Wood },
+        { '8', CellType.Wood }
 };
     }
 
 
 
-    public enum CellType { Wall, Empty, Sand, Outside }
+    public enum CellType { Wall, Empty, Sand, Outside, Glass, Wood }
     public enum MovementThisFrame { FallDown, FallDown_Left, FallDown_Right, None}
 }
